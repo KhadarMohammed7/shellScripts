@@ -14,4 +14,4 @@ done
 
 #cron entry 
 #crontab -e 
-5 * * * * /scripts/serviceMonitor2.sh
+##5 * * * * /scripts/serviceMonitor2.sh
