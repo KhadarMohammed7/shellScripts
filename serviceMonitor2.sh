@@ -11,3 +11,7 @@ if [ "$output" == "$svcstat" ]; then
     echo "$serv service is running"
     fi
 done
+
+#cron entry 
+#crontab -e 
+5 * * * * /scripts/serviceMonitor2.sh
