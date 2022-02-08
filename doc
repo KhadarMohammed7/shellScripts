@@ -1,0 +1,114 @@
+1. Your client chipkart has a tig trillion day sale & the server has got a sudden spike of requests, you need to analyze the load appearing on server before it reaches the max limit, so that you can analyze within how much time you can scale out your infrastructure.
+Find out the average load, server is taking here along with the free memory available.
+
+Answer: 
+We will be able to determine load average either by running the following commands 
+# uptime 
+eg. [root@localhost ~] # uptime
+ 8:22  up 6 days, 21:07, 4 users, load averages: 17.61 11.14 9.43
+ Here first value depicts average load on cpu for last one minute, Second gives us the average load for the last 5-minute interval and The third value gives us the 15-minute average load
+# top 
+This tool gives us realtime Load average, CPU and process running information 
+
+To check the free memory availabel we can use the following command 
+# free -h 
+# free -g 
+Here options -h refers to display the values in MB and -g represents the values in GB 
+
+2. During the nginx setup on the server, you have written your own custom config file, now you need to place this file in /etc/nginx/sites-available/ & /etc/nginx/sites-enabled/ directories. Also, after you move this config file in relevant directory(s), you also need to make sure that if you update your config file in /etc/nginx/sites-available/
+It should get auto updated in /etc/nginx/sites-enabled/ directory without the need to manually update it.
+
+Answer: 
+
+To copy the customConfig file we created we can use the following command (if file is within the server)
+# echo /etc/nginx/sites-available/ /etc/nginx/sites-enabled/ | xargs -n 1 cp customConfig 
+
+To make the customConfig file updated whenever any change is made to it under "/etc/nginx/sites-available/" we can use a symbolic link. To link the two files under directory we can use the following  commands 
+# ln -s /etc/nginx/sites-available/customConfig /etc/nginx/sites-enabled/customConfig
+
+3. You are closely working with a developer to catch an error in the api call, so you are asked to monitor real time access logs of nginx webserver, this log file has a huge amount of data which you cannot risk to open all at once which might take time. Assuming recent data gets appended in the access log file, write your step to check the real time logs.
+
+Answer: 
+
+To access the realtime logs of nginx web server we can use the following command 
+# tail -f /var/log/nginx.log 
+
+here the option -f enables to dispaly last 10 lines of the file nginx.log and it displays the realtime logs. 
+we can use the option -f as follows too to display 100 lines of real time logs 
+# tail -f100 /var/log/nginx.log
+
+4. You were running a django application server & you stopped the executing process & next time you went to start the app server, you found out that the port is already in use. What steps you will take to analyze the issue & then start the django app server
+
+Answer: 
+
+we can use netstat tool to determine the current ports which have ESTABLISHED, LISTENING, CLOSE_WAIT and multiple other states and determine whether the django application port is already in use or it is in listening state. Consider the django app is running on port 8086 then we have to run the follwing command 
+
+# netstat -an |grep -i LISTENING |grep 8086 
+
+Once we determine the process running with the specified port using ps or lsof command we can kill the associated PID and start the application back again 
+
+# to find the process associated with port number run the follwing command 
+# lsof -i :8086
+to kill the associated PID use 
+# kill -9 <PID>
+
+5. Your server went down & your developer found that recent commit had a typo in the source code which had put the server down. Now you have to find the number of occurrences of that typo in the source code file without opening the file. Also, find the occurence of that typo with respect to line number of file.
+
+Answer: 
+
+To replace all the occurences of typo with correct keyword we can use the sed command to find and replace the text 
+# sed -i 's/old-text/new-text/g' input.txt
+
+***** searching for option to print the line number 
+
+6. You had setup the server such as it runs as non-root user & you found out that your application server is not able to write logs to a specific file mentioned by developer in their source code, you found that file exists at the location, however it is not able to log into it. What would be your steps to find the issue & resolve it
+Answer: 
+
+We can either give read and write permission to the non-root user to the log file and parent directory via supplying permissions to others filed 
+# chmod 646 appplication.log 
+
+Or we can add the non-root user to a group and modify the group field permisson to the log file 
+# groupadd application 
+# usermod -G application nonrootuser 
+
+7. You created a systemd service for running backend application program & you would like to check the logs of that service to know whether it failed & caused your application to stop.
+
+Answer: 
+ 
+ To check the systemd servie status we can use the follwoing command 
+ # systemctl status servicename
+
+ This will show the current status of the application and will display the log info even if the app is stopped or reloaded 
+
+
+8. In your company, a developer is developing one app and it is based on Apache2 and he comes to you with an issue that the application he is developing not able generate the access logs. In this scenario which all thing you will check? Write the steps with commands that you will use to solve this.
+
+Answer: 
+First i will check if the file has read and write permissions for the specified user 
+# ls -l <filename>
+if it has the required permissons i will check if the user is owner of the log file if the user is not the owner, then we will check if there is a group with associated users and it has the required permissions. 
+if this is all setup as expected, then we will check if the disk has enough space to write logs 
+# df -h 
+If further there are problems we have to check the app level logging 
+
+9. Suppose you are working as a linux administrator in company and one of your production server which is running on aws and has linux OS is running out of space, as an linux administrator you have decided to attach another volume to the linux server. List down detailed steps and commands to solve this issue.
+
+Answer: Since we have decided to add a new disk to the server, we will login to AWS console and from EC2 we will attach a new disk to the linux server 
+We will check the existing mount point if it is a LVM partition as we can only extend LVM partition 
+# df -Th # this command will display the type of partition.
+Once verified that it is LVM use the following methods 
+
+Format the partition so that it is of the type LVM 
+# fdisk /dev/sdb 
+create the disk of required size and toggle the partition to LVM use option 8e
+Once the disk is formatted we will be able to see a partition 
+
+
+10. Suppose you are working as a Linux administrator in company and one of your client wants to install HTTP server with MySQL on Linux based system and also client wants whenever the server gets rebooted the service should be up automatically. List down the steps with required commands how will you achieve this.
+
+
+11. Suppose you are working as a AWS Linux admin in a company and your have a database server in a private subnet so your manager asked you to launch a bastion server on AWS and allow all developers to access the database so list down the steps you will take to implement this solution.
+
+Note: You will not share the root private key of the launched server with developers.
+
+12. Considering above scenario you have installed the MySQL DB on Linux server, After few days some data get inserted into the database and your manager asked you to replicate same database for testing purpose so in this case you have to take a DB backup and restore it on another server so list down the steps with commands how will you do it.
