@@ -101,14 +101,100 @@ Once verified that it is LVM use the following methods
 Format the partition so that it is of the type LVM 
 # fdisk /dev/sdb 
 create the disk of required size and toggle the partition to LVM use option 8e
-Once the disk is formatted we will be able to see a partition 
-
+Once the disk is formatted we will be able to see a partition add this to pv using pvcreate
+# pvcreate /dev/sdb1
+Add it to the volume group of the corresponding partition 
+# vgextend <vgname> /dev/sdb1
+Now extend the mounted partition 
+# lvextend -L +50G /dev/vgname/lvname
+Once this is done to make the changes visible use resize2fs command for ext3 and ext4 partition, if it is xfs use "xfs_growfs"
+# resize2fs /dev/vgname/lvname
 
 10. Suppose you are working as a Linux administrator in company and one of your client wants to install HTTP server with MySQL on Linux based system and also client wants whenever the server gets rebooted the service should be up automatically. List down the steps with required commands how will you achieve this.
 
+Answer: 
+To install Mysql and httpd packages we will run the below commands 
+# yum install mysql mysql-server mysql-libs mysql-server  --- to install mysql server
+# yum install httpd  -- to install http server 
+
+To allow these services to start automatically when the server reboots we can enable the services 
+# systemcl enable httpd.service 
+# systemctl enable mysql ---- or the other method is 
+# chkconfig --levels 235 mysqld on
 
 11. Suppose you are working as a AWS Linux admin in a company and your have a database server in a private subnet so your manager asked you to launch a bastion server on AWS and allow all developers to access the database so list down the steps you will take to implement this solution.
+Answer: 
 
-Note: You will not share the root private key of the launched server with developers.
+The following example configuration is for an Amazon RDS for MySQL instance that is in an Amazon Virtual Private Cloud (Amazon VPC). The instance has security groups set up for an EC2 instance.
+
+Launch and configure the EC2 instance
+
+Open the Amazon EC2 console, and choose Launch instance.
+Select an Amazon Machine Image (AMI).
+Choose an instance type, and then choose Next: Configure Instance Details.
+For Network, choose the VPC that the RDS DB instance uses.
+For Subnet, select the subnet that has an internet gateway in its routing table. If you don't already have an internet gateway, you can add it to the subnet after the EC2 instance is created.
+Choose Next: Add Storage, and modify storage as needed.
+Choose Next: Add Tags, and add tags as needed.
+Choose Next: Configure Security Group, choose Add Rule, and enter the following:
+Type: Custom TCP Rule
+Protocol: TCP
+Port Range: 22
+Source: Enter the IP address of your local machine. By default, the source IP address is open to all. But you can restrict access to your local public IP address only.
+Choose Review and Launch.
+Choose Launch.
+Configure the RDS DB instance's security groups
+
+Open the Amazon RDS console, and choose Databases from the navigation pane.
+Choose the name of the RDS DB instance. Or create an RDS DB instance, if you don't already have one.
+Choose the Connectivity & security tab.
+From the Security section, choose the link under VPC security groups.
+Select the security group, choose Actions, and choose Edit inbound rules.
+Choose Add rule and enter the following:
+Type: Custom TCP Rule
+Protocol: TCP
+Port Range: Enter the port of your RDS DB instance
+Source: Enter the private IP address of your EC2 instance
+Choose Save.
+This configuration for the security group allows traffic from the EC2 instance's private IP address. If the EC2 instance and the RDS DB instance use the same VPC, then you don't need to modify the RDS DB instance's route table. If the VPC is different, then create a VPC peering connection to allow connections between those VPCs.
+
+Connect to the RDS DB instance from your local machine
+
+Depending on the client that you use, the steps for connecting to the RDS DB instance vary. For more information, see Connecting to an Amazon RDS DB instance. If you use MySQL, it's a best practice to use SSL to encrypt the connection between the client application and Amazon RDS.
+
+The following example uses the MySQL Workbench client to connect to the bastion host:
+
+Start a new connection, and select Standard TCP/IP over SSH for the Connection Method.
+Enter the following details about the EC2 instance for the SSH settings:
+SSH Hostname: Enter the public DNS name of the EC2 instance.
+SSH Username: Enter the user name for your EC2 instance. For example, "ec2-user" is the user name for EC2 Linux machines.
+SSH Key File: Select the private key that was used when the EC2 instance was created.
+Enter the following details for the MySQL instance settings:
+MySQL Hostname: Enter the RDS DB instance endpoint
+MySQL Server port: Enter 3306 (or the custom port that you use).
+Username: Enter the master user name of the RDS DB instance.
+Password: Enter the master password of the RDS DB instance.
+Choose Test Connection.
+
 
 12. Considering above scenario you have installed the MySQL DB on Linux server, After few days some data get inserted into the database and your manager asked you to replicate same database for testing purpose so in this case you have to take a DB backup and restore it on another server so list down the steps with commands how will you do it.
+Answer: 
+
+We will be uing the default method of backup and restore in mysql DB 
+To take backup of all the existing Databases we will use the following dump command 
+# mysqldump --all-databases --single-transaction --quick --lock-tables=false > full-backup.sql -u root -p
+this is to take backup of all the databases available 
+If we want to take backup of specific DB we can use the following method 
+# mysqldump -u [user] -p [database_name] > [filename].sql
+
+This will create a dump file with the contents of a DB. Now create another server with similar configuration and install mysql on it 
+Now create a database with same name as on the other server 
+
+Login to mysql and create a new database as root user 
+# mysql
+# create database <DB name>
+Use the following command to restore the other Database (copy the dump file to the new server) run 
+
+#mysql -u [user] -p [database_name] < [filename].sql
+
+
